@@ -57,6 +57,19 @@ class MenuService {
         player.sendPacket(packet)
     }
 
+    /**
+     * Can be used for many reasons. Like updating name of menu.
+     */
+    fun updateMenu(player: Player) {
+        val menu = viewers[player] ?: return
+
+        val newMenuPacket = WrapperPlayServerOpenWindow(126, menu.type.id(), menu.name)
+        menu.menuPacket = newMenuPacket
+
+        player.sendPacket(newMenuPacket)
+        player.sendPacket(menu.contentPacket ?: return)
+    }
+
     fun closeMenu(player: Player) {
         val wrapper = WrapperPlayServerCloseWindow()
         player.sendPacket(wrapper)
@@ -70,7 +83,6 @@ class MenuService {
 
     fun handleClickInventory(player: Player, packet: WrapperPlayClientClickWindow) {
         val menu = viewers[player] ?: error("Menu under player key not found.")
-        println(menu)
         val clickData = getClickType(packet)
 
         updateCarriedItem(player, packet.carriedItemStack, clickData.clickType)
