@@ -8,9 +8,11 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerCl
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerOpenWindow
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSetSlot
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerWindowItems
+import net.craftoriya.packetuxui.button.Button
 import net.craftoriya.packetuxui.common.PacketUtils.Companion.receivePacket
 import net.craftoriya.packetuxui.common.PacketUtils.Companion.sendPacket
 import net.craftoriya.packetuxui.dto.AccumulatedDrag
+import net.craftoriya.packetuxui.menu.Menu
 import net.craftoriya.packetuxui.types.ButtonType
 import net.craftoriya.packetuxui.types.ClickData
 import net.craftoriya.packetuxui.types.ClickType
@@ -24,21 +26,35 @@ class MenuService {
     private val carriedItem = ConcurrentHashMap<Player, ItemStack>()
     private val accumulatedDrag = ConcurrentHashMap<Player, MutableList<AccumulatedDrag>>()
 
-
     fun openMenu(player: Player, menu: Menu) {
-        if (menu.menuPacket == null) {
-            menu.menuPacket = WrapperPlayServerOpenWindow(126, menu.type.id(), menu.name)
+        menu.render()
+        menu.menuPacket = WrapperPlayServerOpenWindow(126, menu.type.id(), menu.name)
+
+        val items = MutableList(menu.type.size) { index ->
+            menu.buttons[index]?.item ?: ItemStack.EMPTY
         }
-        if (menu.contentPacket == null) {
-            val items = MutableList(menu.type.size) { index ->
-                menu.buttons[index]?.item ?: ItemStack.EMPTY
-            }
-            menu.contentPacket = WrapperPlayServerWindowItems(126, 0, items, null)
-        }
-        viewers[player] = menu.copy()
+        menu.contentPacket = WrapperPlayServerWindowItems(126, 0, items, null)
+
+        viewers[player] = menu
 
         player.sendPacket(menu.menuPacket!!)
         player.sendPacket(menu.contentPacket!!)
+    }
+
+    /**
+     * Re-render the current menu for [player] and push a WindowItems packet.
+     * Called by paginated/tabbed menus after state changes.
+     */
+    fun redraw(player: Player) {
+        val menu = viewers[player] ?: return
+        menu.render()  // re-populate buttons in place
+
+        val items = MutableList(menu.type.size) { index ->
+            menu.buttons[index]?.item ?: ItemStack.EMPTY
+        }
+        val packet = WrapperPlayServerWindowItems(126, 0, items, null)
+        menu.contentPacket = packet
+        player.sendPacket(packet)
     }
 
     fun closeMenu(player: Player) {
@@ -54,6 +70,7 @@ class MenuService {
 
     fun handleClickInventory(player: Player, packet: WrapperPlayClientClickWindow) {
         val menu = viewers[player] ?: error("Menu under player key not found.")
+        println(menu)
         val clickData = getClickType(packet)
 
         updateCarriedItem(player, packet.carriedItemStack, clickData.clickType)
@@ -65,7 +82,6 @@ class MenuService {
     }
 
     fun handleClickMenu(player: Player, clickData: ClickData, slot: Int) {
-
         if (clickData.clickType == ClickType.DRAG_END) {
             clearAccumulatedDrag(player)
         }

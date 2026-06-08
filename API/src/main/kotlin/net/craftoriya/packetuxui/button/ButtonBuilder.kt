@@ -1,4 +1,4 @@
-package net.craftoriya.packetuxui.service
+package net.craftoriya.packetuxui.button
 
 import com.github.retrooper.packetevents.protocol.item.ItemStack
 import net.craftoriya.packetuxui.types.ExecuteComponent

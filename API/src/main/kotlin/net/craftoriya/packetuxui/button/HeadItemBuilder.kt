@@ -1,4 +1,4 @@
-package net.craftoriya.packetuxui.service
+package net.craftoriya.packetuxui.button
 
 import com.github.retrooper.packetevents.protocol.component.ComponentTypes
 import com.github.retrooper.packetevents.protocol.component.builtin.item.ItemEnchantments
@@ -6,6 +6,7 @@ import com.github.retrooper.packetevents.protocol.component.builtin.item.ItemLor
 import com.github.retrooper.packetevents.protocol.component.builtin.item.ItemProfile
 import com.github.retrooper.packetevents.protocol.item.ItemStack
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes
+import net.craftoriya.packetuxui.service.ItemBuilder
 
 class HeadItemBuilder: ItemBuilder() {
     var base64: String = ""

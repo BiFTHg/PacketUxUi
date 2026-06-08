@@ -1,6 +1,6 @@
 package net.craftoriya.packetuxui.dto
 
-import net.craftoriya.packetuxui.service.Button
+import net.craftoriya.packetuxui.button.Button
 
 data class Tab(
     val tabButton: Button,
