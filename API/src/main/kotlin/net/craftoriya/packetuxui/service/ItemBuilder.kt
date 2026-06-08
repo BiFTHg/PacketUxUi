@@ -3,14 +3,17 @@ package net.craftoriya.packetuxui.service
 import com.github.retrooper.packetevents.protocol.component.ComponentTypes
 import com.github.retrooper.packetevents.protocol.component.builtin.item.ItemEnchantments
 import com.github.retrooper.packetevents.protocol.component.builtin.item.ItemLore
+import com.github.retrooper.packetevents.protocol.component.builtin.item.ItemModel
 import com.github.retrooper.packetevents.protocol.item.enchantment.type.EnchantmentType
 import com.github.retrooper.packetevents.protocol.item.type.ItemType
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes
 import net.kyori.adventure.text.Component
 import com.github.retrooper.packetevents.protocol.item.ItemStack
+import com.github.retrooper.packetevents.resources.ResourceLocation
 import net.kyori.adventure.text.format.TextDecoration
+import kotlin.jvm.optionals.getOrNull
 
-open class ItemBuilder {
+open class ItemBuilder() {
     var itemType: ItemType = ItemTypes.AIR
     var name: Component? = null
     var lore: MutableList<Component> = mutableListOf()
@@ -18,6 +21,7 @@ open class ItemBuilder {
     var enchantments: MutableMap<EnchantmentType, Int> = mutableMapOf()
     var enchantVisibility: Boolean = true
     var cmd: Int? = null
+    var itemModel: String? = null
 
     fun itemType(itemType: ItemType): ItemBuilder {
         this.itemType = itemType
@@ -75,6 +79,7 @@ open class ItemBuilder {
             .amount(amount)
             .component(ComponentTypes.ENCHANTMENTS, ItemEnchantments(enchantments, enchantVisibility))
         cmd?.let { item.component(ComponentTypes.CUSTOM_MODEL_DATA, it) }
+        itemModel?.let { item.component(ComponentTypes.ITEM_MODEL, ItemModel(ResourceLocation(it))) }
         name?.let { item.component(ComponentTypes.ITEM_NAME, it) }
         return item.build()
     }

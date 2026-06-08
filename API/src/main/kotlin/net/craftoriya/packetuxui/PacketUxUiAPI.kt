@@ -36,16 +36,12 @@ object PacketUxUiAPI {
         }
 
         service = MenuService()
+
         packetEvents.eventManager.registerListener(
             PacketListener(service).asAbstract(PacketListenerPriority.HIGHEST)
         )
         Bukkit.getPluginManager().registerEvents(BukkitListener(service), plugin)
         isInitialized = true
-//        Bukkit.getScheduler().runTaskTimer(plugin, Runnable {
-//            Bukkit.getOnlinePlayers().forEach{
-//                it.sendMessage("${service.carriedItem[it]?.type?.name}")
-//            }
-//        }, 0, 20)
     }
 
     fun terminate() {

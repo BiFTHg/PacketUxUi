@@ -6,6 +6,6 @@ import net.craftoriya.packetuxui.dto.CooldownComponent
 
 data class Button(
     val item: ItemStack,
-    val execute: ((ExecuteComponent) -> Unit)? = null,
+    var execute: ((ExecuteComponent) -> Unit)? = null,
     val cooldown: CooldownComponent
 )

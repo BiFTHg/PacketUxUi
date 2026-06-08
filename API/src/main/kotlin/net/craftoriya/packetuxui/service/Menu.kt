@@ -16,23 +16,20 @@ open class Menu(
 ) {
     val buttons: ConcurrentMap<Int, Button> = ConcurrentHashMap(buttons)
 
-    @Volatile var contentPacket: WrapperPlayServerWindowItems
-    @Volatile var menuPacket: WrapperPlayServerOpenWindow
+    @Volatile var contentPacket: WrapperPlayServerWindowItems? = null
+    @Volatile var menuPacket: WrapperPlayServerOpenWindow? = null
 
     fun copy(): Menu {
-        return Menu(name, type, buttons, cooldown)
+        val menu = Menu(name, type, buttons, cooldown)
+        menu.menuPacket = this.menuPacket
+        menu.contentPacket = this.contentPacket
+        return menu
     }
 
     init {
-        val items = MutableList(type.size) { index ->
-            this.buttons[index]?.item ?: ItemStack.EMPTY
-        }
-
         if (buttons.size > type.size) {
             throw IllegalArgumentException("Too many items in menu")
         }
-        menuPacket = WrapperPlayServerOpenWindow(126, type.id(), name)
-        contentPacket = WrapperPlayServerWindowItems(126, 0, items, null)
     }
 }
 

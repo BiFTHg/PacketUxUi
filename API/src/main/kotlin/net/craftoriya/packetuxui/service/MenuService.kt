@@ -4,6 +4,8 @@ import com.github.retrooper.packetevents.protocol.item.ItemStack
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClickWindow
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClickWindow.WindowClickType
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerCloseWindow
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerOpenWindow
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSetSlot
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerWindowItems
 import net.craftoriya.packetuxui.common.PacketUtils.Companion.receivePacket
@@ -24,9 +26,24 @@ class MenuService {
 
 
     fun openMenu(player: Player, menu: Menu) {
+        if (menu.menuPacket == null) {
+            menu.menuPacket = WrapperPlayServerOpenWindow(126, menu.type.id(), menu.name)
+        }
+        if (menu.contentPacket == null) {
+            val items = MutableList(menu.type.size) { index ->
+                menu.buttons[index]?.item ?: ItemStack.EMPTY
+            }
+            menu.contentPacket = WrapperPlayServerWindowItems(126, 0, items, null)
+        }
         viewers[player] = menu.copy()
-        player.sendPacket(menu.menuPacket)
-        player.sendPacket(menu.contentPacket)
+
+        player.sendPacket(menu.menuPacket!!)
+        player.sendPacket(menu.contentPacket!!)
+    }
+
+    fun closeMenu(player: Player) {
+        val wrapper = WrapperPlayServerCloseWindow()
+        player.sendPacket(wrapper)
     }
 
     fun onCloseMenu(player: Player) {
@@ -55,7 +72,7 @@ class MenuService {
         val carriedItem = carriedItem[player]
         val menu = viewers[player] ?: error("Menu under player key not found.")
 
-        val menuContentPacket = WrapperPlayServerWindowItems(126, 0, menu.contentPacket.items, carriedItem)
+        val menuContentPacket = WrapperPlayServerWindowItems(126, 0, menu.contentPacket!!.items, carriedItem)
 
         val button = menu.buttons[slot]
         if (button == null) {
@@ -91,7 +108,7 @@ class MenuService {
         val menu = getMenu(player) ?: return
         if (slot > menu.type.lastIndex) throw IllegalArgumentException("Slot out of range.")
 
-        val items = menu.contentPacket.items.toMutableList()
+        val items = menu.contentPacket!!.items.toMutableList()
         items[slot] = item
         menu.contentPacket = WrapperPlayServerWindowItems(126, 0, items, null)
 
@@ -102,7 +119,7 @@ class MenuService {
         val menu = getMenu(player) ?: return
         if (newItems.keys.any { it > menu.type.lastIndex }) throw IllegalArgumentException("Slot out of range.")
 
-        val items = menu.contentPacket.items.toMutableList()
+        val items = menu.contentPacket!!.items.toMutableList()
         newItems.forEach { (slot, item) ->
             items[slot] = item
         }
@@ -118,7 +135,7 @@ class MenuService {
         if (slot > menu.type.lastIndex) throw IllegalArgumentException("Slot out of range.")
 
         menu.buttons[slot] = newButton
-        val items = menu.contentPacket.items.toMutableList()
+        val items = menu.contentPacket!!.items.toMutableList()
         items[slot] = newButton.item
         menu.contentPacket = WrapperPlayServerWindowItems(126, 0, items, null)
 
@@ -133,14 +150,12 @@ class MenuService {
 
         menu.buttons.clear()
         menu.buttons.putAll(newButtons)
-        val items = MutableList(menu.type.lastIndex) { index ->
+        val items = MutableList(menu.type.size) { index ->
             newButtons[index]?.item ?: ItemStack.EMPTY
         }
-        menu.contentPacket = WrapperPlayServerWindowItems(126, 0, items, null)
-
-        for ((slot, button) in newButtons) {
-            player.sendPacket(WrapperPlayServerSetSlot(126, 0, slot, button.item))
-        }
+        val packet = WrapperPlayServerWindowItems(126, 0, items, null)
+        menu.contentPacket = packet
+        player.sendPacket(packet)
     }
 
     fun getMenu(player: Player): Menu? = viewers[player]
@@ -299,4 +314,3 @@ class MenuService {
         }
     }
 }
-
