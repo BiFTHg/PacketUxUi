@@ -28,6 +28,7 @@ class MenuService {
 
     fun openMenu(player: Player, menu: Menu) {
         menu.render()
+        menu.persistentButtons.clear() // fresh open = no persistent state carried over
         menu.menuPacket = WrapperPlayServerOpenWindow(126, menu.type.id(), menu.name)
 
         val items = MutableList(menu.type.size) { index ->
@@ -36,7 +37,6 @@ class MenuService {
         menu.contentPacket = WrapperPlayServerWindowItems(126, 0, items, null)
 
         viewers[player] = menu
-
         player.sendPacket(menu.menuPacket!!)
         player.sendPacket(menu.contentPacket!!)
     }
@@ -47,7 +47,8 @@ class MenuService {
      */
     fun redraw(player: Player) {
         val menu = viewers[player] ?: return
-        menu.render()  // re-populate buttons in place
+        menu.render()
+        menu.buttons.putAll(menu.persistentButtons) // restore after render wipes everything
 
         val items = MutableList(menu.type.size) { index ->
             menu.buttons[index]?.item ?: ItemStack.EMPTY
@@ -126,6 +127,7 @@ class MenuService {
                     player,
                     clickData.buttonType,
                     slot,
+                    menu,
                     carriedItem
                 )
             )
@@ -136,10 +138,13 @@ class MenuService {
         val menu = getMenu(player) ?: return
         if (slot > menu.type.lastIndex) throw IllegalArgumentException("Slot out of range.")
 
+        menu.buttons[slot]?.let { existing ->
+            menu.buttons[slot] = existing.copy(item = item)
+        }
+
         val items = menu.contentPacket!!.items.toMutableList()
         items[slot] = item
         menu.contentPacket = WrapperPlayServerWindowItems(126, 0, items, null)
-
         player.sendPacket(WrapperPlayServerSetSlot(126, 0, slot, item))
     }
 
@@ -147,10 +152,14 @@ class MenuService {
         val menu = getMenu(player) ?: return
         if (newItems.keys.any { it > menu.type.lastIndex }) throw IllegalArgumentException("Slot out of range.")
 
-        val items = menu.contentPacket!!.items.toMutableList()
         newItems.forEach { (slot, item) ->
-            items[slot] = item
+            menu.buttons[slot]?.let { existing ->
+                menu.buttons[slot] = existing.copy(item = item)
+            }
         }
+
+        val items = menu.contentPacket!!.items.toMutableList()
+        newItems.forEach { (slot, item) -> items[slot] = item }
         menu.contentPacket = WrapperPlayServerWindowItems(126, 0, items, null)
 
         for ((slot, item) in newItems) {
@@ -163,6 +172,7 @@ class MenuService {
         if (slot > menu.type.lastIndex) throw IllegalArgumentException("Slot out of range.")
 
         menu.buttons[slot] = newButton
+        menu.persistentButtons[slot] = newButton
         val items = menu.contentPacket!!.items.toMutableList()
         items[slot] = newButton.item
         menu.contentPacket = WrapperPlayServerWindowItems(126, 0, items, null)
@@ -178,8 +188,10 @@ class MenuService {
 
         menu.buttons.clear()
         menu.buttons.putAll(newButtons)
+        menu.buttons.putAll(menu.persistentButtons)
+
         val items = MutableList(menu.type.size) { index ->
-            newButtons[index]?.item ?: ItemStack.EMPTY
+            menu.buttons[index]?.item ?: ItemStack.EMPTY
         }
         val packet = WrapperPlayServerWindowItems(126, 0, items, null)
         menu.contentPacket = packet

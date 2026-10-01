@@ -15,11 +15,9 @@ class CommandListener(
     private val service: MenuService,
 ) {
     private val static3x9 = Static3x9()
-    private val dynamic4x9 = Dynamic4x9(service)
-    private val buttonDetector = ButtonDetector()
-    private val cooldownTest = CooldownTest()
-    private val allInOne = AllInOne(service)
-
+    private val dynamic4x9 = Dynamic4x9()
+    private val paginated = PaginatedTest()
+    private val tabbed = TabbedTest()
 
     init {
         val coordinator = ExecutionCoordinator.simpleCoordinator<Source>()
@@ -31,78 +29,27 @@ class CommandListener(
         val openMenuBuilder = commandManager.commandBuilder("open_menu")
             .senderType(PlayerSource::class.java)
 
-        val drawLineBuilder = commandManager.commandBuilder("draw_line")
-            .senderType(PlayerSource::class.java)
-
-        val eggLineBuilder = commandManager.commandBuilder("egg_line")
-            .senderType(PlayerSource::class.java)
-
-
         val subcommands = listOf(
-            "static_3x9" to Pair(
-                static3x9.menu, """
-                
-                Simple static menu 3x9.
-                Entire menu under cooldown of 5 seconds
-                And freeze time of 1 second.
-                
-            """.trimIndent()
-            ),
-
-            "dynamic_4x9" to Pair(
-                dynamic4x9.menu, """
-                
-                Dynamic menu 4x9.
-                buttons become a stone after a click
-                Also some items are blinking
-            """.trimIndent()
-            ),
-
-            "button_detector" to Pair(
-                buttonDetector.menu, """
-                
-                Static crafting table menu
-                This menu detects button click types.
-                freeze time 300ms
-                """.trimIndent()
-            ),
-            "cooldown_test" to Pair(
-                cooldownTest.menu, """
-                
-                
-                 Static anvil menu.
-                 Demonstrates how cooldown works.
-                
-                """.trimIndent()
-            ),
-            "all_in_one" to Pair(
-                allInOne.menu, """
-                
-                This is a comprehensive all-in-one menu.
-                
-                """.trimIndent()
-            )
+            "static_3x9",
+            "dynamic_4x9",
+            "paginated",
+            "tabbed"
         )
 
-        for ((subcommand, menuData) in subcommands) {
-            val (menu, description) = menuData
-
+        for (command in subcommands) {
             commandManager.command(
-                openMenuBuilder.literal(subcommand)
+                openMenuBuilder.literal(command)
                     .handler { context ->
+                        // Створюємо нове меню САМЕ В МОМЕНТ виконання команди гравцем
+                        val menu = when(command) {
+                            "static_3x9" -> static3x9.getMenu()
+                            "paginated" -> paginated.getMenu()
+                            "tabbed" -> tabbed.getMenu()
+                            else -> dynamic4x9.getMenu()
+                        }
                         service.openMenu(context.sender().source(), menu)
-                    }
-            )
-
-            commandManager.command(
-                openMenuBuilder.literal(subcommand)
-                    .literal("desc")
-                    .handler { context ->
-                        val player = context.sender().source()
-                        player.sendMessage(description)
                     }
             )
         }
     }
 }
-

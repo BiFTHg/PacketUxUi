@@ -16,7 +16,7 @@ abstract class Menu(
     val cooldown: CooldownComponent = CooldownComponent()
 ) {
     val buttons: ConcurrentMap<Int, Button> = ConcurrentHashMap()
-    val uniqueId: UUID = UUID.randomUUID()
+    val persistentButtons: ConcurrentMap<Int, Button> = ConcurrentHashMap()
 
     @Volatile var contentPacket: WrapperPlayServerWindowItems? = null
     @Volatile var menuPacket: WrapperPlayServerOpenWindow? = null

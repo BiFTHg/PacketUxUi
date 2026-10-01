@@ -37,7 +37,6 @@ class PaginatedMenu(
                 buttons[slot] = button.copy(execute = { ec ->
                     orig?.invoke(ec)
                     currentPage--
-                    // tell the service to re-render and push
                     PacketUxUiAPI.getService().redraw(ec.player)
                 })
             }
@@ -52,5 +51,7 @@ class PaginatedMenu(
                 })
             }
         }
+
+        buttons.putAll(persistentButtons) // always last — persistent slots win
     }
 }

@@ -28,6 +28,7 @@ class TabbedPaginatedMenu(
     override fun render() {
         buttons.clear()
         buttons.putAll(staticButtons)
+        buttons.putAll(persistentButtons)
 
         val activeTab = tabs[activeTabSlot] ?: return
         val currentPage = pageStates.getValue(activeTabSlot)

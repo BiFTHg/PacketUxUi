@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "net.craftoriya"
-version = "0.4"
+version = "0.6"
 
 repositories {
     mavenCentral()

@@ -1,7 +1,7 @@
 plugins {
     kotlin("jvm") version "2.0.20"
     id("com.github.johnrengelman.shadow") version "8.1.1"
-    id("xyz.jpenilla.run-paper") version "2.0.1"
+    id("xyz.jpenilla.run-paper") version "2.3.1"
 
 }
 
@@ -19,7 +19,7 @@ dependencies {
     compileOnly("io.papermc.paper:paper-api:1.21.4-R0.1-SNAPSHOT")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation(project(":API"))
-    implementation("com.github.retrooper:packetevents-spigot:2.6.0")
+    implementation("com.github.retrooper:packetevents-spigot:2.12.1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1-Beta")
     implementation("org.incendo:cloud-paper:2.0.0-beta.10")
 
@@ -40,7 +40,7 @@ tasks.processResources {
 
 tasks {
     runServer {
-        minecraftVersion("1.21.1")
+        minecraftVersion("1.21.4")
     }
 }
 

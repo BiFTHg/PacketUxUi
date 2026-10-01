@@ -2,11 +2,12 @@ package net.craftoriya.menus
 
 import com.github.retrooper.packetevents.protocol.item.enchantment.type.EnchantmentTypes
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes
-import net.craftoriya.packetuxui.common.toComponent
+import net.craftoriya.common.toComponent
 import net.craftoriya.packetuxui.dto.CooldownComponent
-import net.craftoriya.packetuxui.service.ButtonBuilder
+import net.craftoriya.packetuxui.button.ButtonBuilder
 import net.craftoriya.packetuxui.service.ItemBuilder
-import net.craftoriya.packetuxui.service.Menu
+import net.craftoriya.packetuxui.menu.Menu
+import net.craftoriya.packetuxui.menu.SimpleMenu
 import net.craftoriya.packetuxui.types.InventoryType
 
 class Static3x9 {
@@ -45,24 +46,24 @@ class Static3x9 {
         .item(item2)
         .build()
 
-
-
-    val menu = Menu(
-        name = "<gradient:#ff6d2e:#ff2e62><bold>First packet menu".toComponent(),
-        type = InventoryType.GENERIC9X3,
-        buttons = mapOf(
-            0 to button1,
-            4 to button1,
-            8 to button2,
-            12 to button2,
-            16 to button1,
-            20 to button1,
-            24 to button2,
-        ),
-        cooldown = CooldownComponent(
-            delay = 5000,
-            execute = {it.player.sendMessage("Menu cooldown bigger so it overrides item's one".toComponent())},
-            freeze = 1000
+    fun getMenu(): Menu {
+        return SimpleMenu(
+            name = "<gradient:#ff6d2e:#ff2e62><bold>First packet menu".toComponent(),
+            type = InventoryType.GENERIC9X3,
+            staticButtons = mapOf(
+                0 to button1,
+                4 to button1,
+                8 to button2,
+                12 to button2,
+                16 to button1,
+                20 to button1,
+                24 to button2,
+            ),
+            cooldown = CooldownComponent(
+                delay = 5000,
+                execute = { it.player.sendMessage("Menu cooldown bigger so it overrides item's one".toComponent()) },
+                freeze = 1000
+            )
         )
-    )
+    }
 }
